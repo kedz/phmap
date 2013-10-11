@@ -2,6 +2,8 @@ import x10.util.Timer;
 import x10.util.ArrayList;
 import x10.util.HashMap;
 import x10.util.Pair;
+import x10.array.*;
+import x10.util.concurrent.*;
 /**
  * This is the class that provides the HashMap functionalities.
  *
@@ -10,35 +12,33 @@ import x10.util.Pair;
  */
 public class Hash
 {
-	private var h : HashMap[long,long];
-	private var counter : long;
-	private var defaultValue : Long; // a default value is returned when an element with a given key is not present in the dict.
-	private var pending:ArrayList[long];
+    var table:Array_1[AtomicReference[ConList]];
+    var size:long = 100000n;
+    var defaultVal:long;
+    var counter:AtomicLong;
 
-	public def this(defV : long){
-		counter = 0n;
-		h = new HashMap[long,long]();
-		defaultValue = defV;
-		pending = new ArrayList[long]();
-	}
+    public def this(defaultValue:long){
+        this.defaultVal = defaultValue;
+        table = new Array_1[AtomicReference[ConList]](size,AtomicReference.newAtomicReference[ConList](null));
+        counter = new AtomicLong(0);
+    }
+
+    private def hash( key:long) : long{
+        return key%size;
+    }
 
     /**
      * Insert the pair <key,value> in the hash table
      *     'key'
      *     'value' 
      *
-     * This function return the unique order id of the operation in the linearized history.
+     * This function returns the unique order id of the operation in the linearized history.
      */
     public def put(key: long, value: long) : long
     {
-		var r : long = -1;
-
-		atomic{
-			r = ++counter;
-			h.put(key,value);
-		}
-
-		return r;
+        var index:long = hash(key);
+        table(index).compareAndSet(null,new ConList());
+        return table(index).get().put(key,value);
 
     }
 
@@ -52,17 +52,13 @@ public class Hash
      */
     public def get(key: long) : Pair[long,long]
     {
-		var i:long = -1;
-		var value:long = defaultValue;
-
-		atomic{
-			i = ++counter;
-			val boxedValue = h.get(key);
-			try{
-				value = boxedValue();
-			}catch(Exception){}
-		}
-
-        return new Pair[long,long](i,value);
+        var index:long = hash(key);
+        if( table(index).get() == null )
+       {
+           var c:long = counter.getAndIncrement();
+           if( table(index).compareAndSet(null,null))
+               return new Pair[long, long](c,defaultVal);
+        } 
+        return table(index).get().get(key);
     }
 }
