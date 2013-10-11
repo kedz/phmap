@@ -12,7 +12,7 @@ public class ConList
 {
 	private var defaultValue : Long; // a default value is returned when an element with a given key is not present in the dict.
   private var head : Node = new Node(); // A sentinel head node with empty key and value.
-  private static counter:AtomicLong = new AtomicLong(0);
+  private var counter:AtomicLong = new AtomicLong(0);
   
 
   private static class Node {
@@ -31,13 +31,11 @@ public class ConList
 
   }
 
-	public def this(defaultValue : Long){
+	public def this(defaultValue : Long, counter:AtomicLong){
     this.defaultValue = defaultValue;    
+    this.counter = counter;
 	} 
 
-  public def this() {
-    this(0n);
-  }
 
   /**
    * Insert the pair <key,value> in the hash table
