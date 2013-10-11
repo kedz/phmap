@@ -37,7 +37,7 @@ public class Hash
     public def put(key: long, value: long) : long
     {
         var index:long = hash(key);
-        table(index).compareAndSet(null,new ConList());
+        table(index).compareAndSet(null,new ConList(defaultVal,counter));
         return table(index).get().put(key,value);
 
     }
