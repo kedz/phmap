@@ -13,6 +13,7 @@ public class ConList
 	private var defaultValue : Long; // a default value is returned when an element with a given key is not present in the dict.
   private var head : Node = new Node(); // A sentinel head node with empty key and value.
   private var counter:AtomicLong = new AtomicLong(0);
+
   
 
   private static class Node {
