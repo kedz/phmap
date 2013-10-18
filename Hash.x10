@@ -14,14 +14,17 @@ import x10.util.concurrent.*;
 public class Hash
 {
     var table:Array_1[AtomicReference[ConList]];
-    var size:long = 15n;
+    var size:long = 50n;
     var defaultVal:long;
     var counter:AtomicLong;
 
     public def this(defaultValue:long){
         
         this.defaultVal = defaultValue;
-        table = new Array_1[AtomicReference[ConList]](size,AtomicReference.newAtomicReference[ConList](null));
+        table = new Array_1[AtomicReference[ConList]](size);
+        for (var i:Long = 0; i < size; i++)
+          table(i) =  AtomicReference.newAtomicReference[ConList](null);
+        
         counter = new AtomicLong(0);
     }
 
