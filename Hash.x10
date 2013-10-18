@@ -13,11 +13,12 @@ import x10.util.concurrent.*;
 public class Hash
 {
     var table:Array_1[AtomicReference[ConList]];
-    var size:long = 100000n;
+    var size:long = 15n;
     var defaultVal:long;
     var counter:AtomicLong;
 
     public def this(defaultValue:long){
+        
         this.defaultVal = defaultValue;
         table = new Array_1[AtomicReference[ConList]](size,AtomicReference.newAtomicReference[ConList](null));
         counter = new AtomicLong(0);
@@ -36,10 +37,17 @@ public class Hash
      */
     public def put(key: long, value: long) : long
     {
+        
         var index:long = hash(key);
-        table(index).compareAndSet(null,new ConList(defaultVal,counter));
+        if (table(index).get() == null) {
+          
+          var aList:ConList = new ConList(defaultVal,counter);
+          table(index).compareAndSet(null, aList);
+          
+        }
+        
         return table(index).get().put(key,value);
-
+        
     }
 
     /**
@@ -50,15 +58,25 @@ public class Hash
 	 *     'first'    unique order id of the operation in the linearized history.
 	 *     'second'   values associated to the input pair (defaultValue if there is no value associated to the input key)
      */
-    public def get(key: long) : Pair[long,long]
+  public def get(key: long) : Pair[long,long]
+  {
+    
+     
+    var index:long = hash(key);
+
+
+    if( table(index).get() == null )
     {
-        var index:long = hash(key);
-        if( table(index).get() == null )
-       {
-           var c:long = counter.getAndIncrement();
-           if( table(index).compareAndSet(null,null))
-               return new Pair[long, long](c,defaultVal);
-        } 
-        return table(index).get().get(key);
+           
+      var c:long = counter.getAndIncrement();
+      if( table(index).get() == null) {
+        
+        return new Pair[long, long](c,defaultVal);
+          
+      }
     }
+
+    return table(index).get().get(key);
+   
+  }
 }

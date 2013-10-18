@@ -27,7 +27,15 @@ public class ConList
       this.value = value;
     }
 
-    public def this() {}
+    public def this() {
+      this.key = -1;
+      this.value = new AtomicLong(-1);  
+    }
+
+    public def toString() : String 
+    {
+      return "node k:"+key+" v:"+value.get();
+    }
 
   }
 
@@ -50,26 +58,30 @@ public class ConList
     node:Node = new Node(key, new AtomicLong(value));    
 
     while(true) {
-
-      if (t.next.get() == null) {
-        var c:Long = counter.getAndIncrement();
-        if (t.next.compareAndSet(null,node))
-          return c; 
-        else 
-          continue;
-      } else if (t.key == key) {
+      
+      if (t.key == key) {
         while(true) {
           var v:Long = t.value.get();
           var c:Long = counter.getAndIncrement();
+          
           if (t.value.compareAndSet(v,value)) {
             return c;
           }
 
         }
 
+      } else if (t.next.get() == null) {
+        var c:Long = counter.getAndIncrement();
+        if (t.next.compareAndSet(null,node)) {
+          return c; 
+          
+        } else {
+          continue;
+        }
       } else {
 
-        t = t.next.get();
+        if (t.next.get() != null)
+          t = t.next.get();
 
       }
     }    
@@ -88,6 +100,7 @@ public class ConList
   {
 
     var t:Node = head;
+    
 
     while (true) {
 
