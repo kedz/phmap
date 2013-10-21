@@ -7,9 +7,11 @@ Team Members:
 MiniProject 2: Parallel Hash Map
 
 
-Our Parallel Hash object is backed by an array of lock free lists inspired by the lock free queue presented in class.
-While conceptually simple, debugging parallel put/get operations can often be tricky and counter intuitive,
-especially when trying to ascertain what combination of actions is undoing your data structure.
+Our Parallel Hash object is backed by an array of lock free lists inspired by
+the lock free queue presented in class. While conceptually simple, debugging
+parallel put/get operations can often be tricky and counter intuitive,
+especially when trying to ascertain what combination of actions is undoing 
+your data structure.
 
 Before thinking of performance, we had to guarantee that any time we returned a
 serialization point, there were no modifications to the list and node we were
