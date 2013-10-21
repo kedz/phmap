@@ -19,12 +19,14 @@ public class Main
 {
 
 	//DEFAULT CONFIGURATION VALUES
-    static val WORKERS = 8;
-	static val INS_PER_THREAD = 1000;
-	static val KEY_LIMIT = 100;
-	static val VALUE_LIMIT = 100;
+    static private val WORKERS = 8;
+	static private val INS_PER_THREAD = 1000;
+	static private val KEY_LIMIT = 100;
+	static private val VALUE_LIMIT = 100;
+	static private val RATIO = 0.8;
+
 	static val defaultValue = 0;  //NOT CONFIGURABLE
-	static val RATIO = 0.8;
+
 
 	// Struct used to record write and reads to the shared data hash tablex
     static struct LogEntry
@@ -84,7 +86,7 @@ public class Main
 
 		Console.OUT.println(workers+" Workers\t"+ins_per_thread+" <key,value> pairs per thread\t"+ratio+" ratio of get w.r.t. total number of operations");
 	   
-		val h = new Hash(defaultValue); //INSTANCE OF THE DATA STRUCTURE YOU HAVE TO IMPLEMENT
+		val h = new Hash(defaultValue , workers , ratio , ins_per_thread , key_limit , value_limit); //INSTANCE OF THE DATA STRUCTURE YOU HAVE TO IMPLEMENT
 
 		val log = new Array[ ArrayList[ LogEntry ] ](workers, (long) => new ArrayList[ LogEntry ]() );  //ARRAY WHERE THE HISTORY IS SAVED
 

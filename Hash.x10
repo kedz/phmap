@@ -26,10 +26,12 @@ public class Hash {
     var counter:AtomicLong;
 
     
-    public def this(defaultValue:long){
+    public def this(defaultValue:long, workers: long, ratio: double, ins_per_thread: long, key_limit: long, value_limit: long) {
         
         this.defaultVal = defaultValue;
-        
+        size = key_limit/4;
+
+
         // Initialize array of atomic references to null.
         table = new Array_1[AtomicReference[ConList]](size);
         for (var i:Long = 0; i < size; i++)
