@@ -11,26 +11,39 @@ import x10.util.concurrent.*;
  * The assignment is to replace the content of this class with code that exhibit
  * a better scalability.
  */
-public class Hash
-{
+public class Hash {
+    
+    // Array of buckets for hashing items to
     var table:Array_1[AtomicReference[ConList]];
+    
+    // Default bucket size is 50
     var size:long = 50n;
+    
+    // Defaul value to return if Hash does not contain requested key.
     var defaultVal:long;
+    
+    // Linearization point counter
     var counter:AtomicLong;
 
+    
     public def this(defaultValue:long){
         
         this.defaultVal = defaultValue;
+        
+        // Initialize array of atomic references to null.
         table = new Array_1[AtomicReference[ConList]](size);
         for (var i:Long = 0; i < size; i++)
-          table(i) =  AtomicReference.newAtomicReference[ConList](null);
+            table(i) = AtomicReference.newAtomicReference[ConList](null);
         
         counter = new AtomicLong(0);
     }
 
-    private def hash( key:long) : long{
-        return key%size;
-    }
+    /**
+     * Get bucket index.
+     */
+    private def hash( key:long) : long {
+        return key % size;
+    } 
 
     /**
      * Insert the pair <key,value> in the hash table
@@ -39,20 +52,25 @@ public class Hash
      *
      * This function returns the unique order id of the operation in the linearized history.
      */
-    public def put(key: long, value: long) : long
-    {
+    public def put(key: long, value: long) : long {
         
         var index:long = hash(key);
+        
+        // If nothing is in this bucket, create a new ConList instance here.
         if (table(index).get() == null) {
           
           var aList:ConList = new ConList(defaultVal,counter);
+          
+          // Don't delete if someone has beaten us to it.
           table(index).compareAndSet(null, aList);
           
         }
         
+        // Insert into the ConList and return the linearization point.
         return table(index).get().put(key,value);
         
     }
+
 
     /**
      * get the value associated to the input key
@@ -62,25 +80,26 @@ public class Hash
 	 *     'first'    unique order id of the operation in the linearized history.
 	 *     'second'   values associated to the input pair (defaultValue if there is no value associated to the input key)
      */
-  public def get(key: long) : Pair[long,long]
-  {
-    
+    public def get(key: long) : Pair[long,long] {
      
-    var index:long = hash(key);
+        var index:long = hash(key);
 
+        // If there is nothing in this bucket, try to return the default
+        // value. If someone creates a ConList while we are doing this, we
+        // must abort and search the index. 
+        if (table(index).get() == null) {
+            
+            // get linearization point
+            var c:long = counter.getAndIncrement();
+            
+            // verify no one has put a ConList here and return default value.
+            if (table(index).get() == null) {
+                return new Pair[long, long](c,defaultVal);
+            }
+        }
 
-    if( table(index).get() == null )
-    {
-           
-      var c:long = counter.getAndIncrement();
-      if( table(index).get() == null) {
-        
-        return new Pair[long, long](c,defaultVal);
-          
-      }
-    }
-
-    return table(index).get().get(key);
+        // This is a ConList here -- search it.
+        return table(index).get().get(key);
    
-  }
+    }
 }
