@@ -68,7 +68,7 @@ public class Hash {
           
         }
         
-        // Insert into the ConList and return the linearization point.
+        // Insert into the ConList and return the serialization point.
         return table(index).get().put(key,value);
         
     }
@@ -91,7 +91,7 @@ public class Hash {
         // must abort and search the index. 
         if (table(index).get() == null) {
             
-            // get linearization point
+            // get serialization point
             var c:long = counter.getAndIncrement();
             
             // verify no one has put a ConList here and return default value.
@@ -160,11 +160,11 @@ public class Hash {
                         // get current value
                         var v:Long = t.value.get();
                         
-                        // get linearization point
+                        // get serialization point
                         var c:Long = counter.getAndIncrement();
               
                         // If someone has modified the value since we grabbed
-                        // a linearization point, this point is no longer valid,
+                        // a serialization point, this point is no longer valid,
                         // and so we must abort and try again.
                         if (t.value.compareAndSet(v,value)) {
                             return c;
@@ -179,7 +179,7 @@ public class Hash {
                 // newest insert/modification did not put our key in the list.
                 } else if (t.next.get() == null) {
                     
-                    // get linearization point                
+                    // get serialization point                
                     var c:Long = counter.getAndIncrement();
                     
                     // Try and set the node, go back to head of the while loop if aborted.
@@ -219,7 +219,7 @@ public class Hash {
 
                 // We have found the key, try to return the value. We must
                 // retry if our value has been modified after grabbing a
-                // linearization point.
+                // serialization point.
                 if (key == t.key) {
                 
                     while(true) {
@@ -227,10 +227,10 @@ public class Hash {
                         // get value
                         v:Long = t.value.get();
                         
-                        // get linearization point
+                        // get serialization point
                         c:Long = counter.getAndIncrement();
 
-                        // If the value has changed, the linearization point
+                        // If the value has changed, the serialization point
                         // is out of date and we must try again.
                         if (t.value.compareAndSet(v,v)) {
                             return new Pair[Long,Long](c,v);
@@ -240,7 +240,7 @@ public class Hash {
                 // We have gotten to the end and not found our key.
                 // Try to return default value. We must retry searching
                 // if someone inserts a tail node after we have taken a
-                // linearization point.    
+                // serialization point.    
                 } else if (t.next.get() == null) {
 
                     var c:Long = counter.getAndIncrement();

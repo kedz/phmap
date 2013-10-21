@@ -9,20 +9,52 @@ MiniProject 2: Parallel Hash Map
 
 Our Parallel Hash object is backed by an array of lock free lists inspired by the lock free queue presented in class.
 While conceptually simple, debugging parallel put/get operations can often be tricky and counter intuitive,
-especially when trying to acertain what combination of actions is undoing your data structure.
+especially when trying to ascertain what combination of actions is undoing your data structure.
 
-Before thinking of performance, we had to gaurantee that any time we returned a
-linearization point, there were no modifications to the list and node we were
+Before thinking of performance, we had to guarantee that any time we returned a
+serialization point, there were no modifications to the list and node we were
 currently in. Therefore, values stored in the list are AtomicLongs and before
-getting or setting them, we get their value and then get the next linearization
+getting or setting them, we get their value and then get the next serialization
 point from the global AtomicLong counter. We check the value again, and if it
 has changed then someone has modified this node and we must try again to
-perform the get or set operation. Similary we had to ensure that no node was
+perform the get or set operation. Similarly we had to ensure that no node was
 added to the list while returning a default value, since this new node might
-have the key we are looking for and our linearization point would be invalid.
+have the key we are looking for and our serialization point would be invalid.
 
 On the performance front, we experimented with condor using the default values
 of Hash as well as adjusting the ratio of gets w. r. t. total operations to .2.
 
-     
+Averaging over 100 reads in each case, we can see from table 1 that the
 
+              Number of Insertions
+            1,000    10,000    100,000
+         +--------+---------+-----------+
+      .8 | 3.89ms | 29.14ms | 334.912ms |
+ratio    +--------+---------+-----------+
+      .2 | 5.43ms |  35.5ms |   595.9ms |
+         +--------+---------+-----------+
+
+          Table 1: Running time (8 threads)
+
+running time scales roughly linearly with the size of the input. Unfortunately,
+we do not beat the performance of a single thread alone. In the multi-threaded
+case, threads may often conflict with each other for when placing items.
+However, when counting the number of times threads had repeat a put or a get,
+we found that this only accounted for 1.12% of operations on average. 
+
+
+              Number of Insertions
+            1,000    10,000    100,000
+         +--------+---------+-----------+
+      .8 | 0.91ms |  5.86ms |  60.23ms  |
+ratio    +--------+---------+-----------+
+      .2 | 1.13ms |  8.19ms |  80.09ms  |
+         +--------+---------+-----------+
+
+          Table 2: Running time (1 thread)
+     
+Given more time we would have liked to implement the flat combining algorithm
+to see how much of a performance loss relative to the serial version we would
+have seen. Since only a small percentage of operations needed to try again
+in our current implementation, it seems possible that the performance loss
+was more the fault of the overhead of switching threads.  
